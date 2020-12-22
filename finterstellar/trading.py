@@ -38,10 +38,13 @@ def position(df):
     df['position'].mask((df['trade'].shift(1)=='zero') & (df['trade']=='buy'), 'zl', inplace=True)
     df['position'].mask((df['trade'].shift(1)=='buy') & (df['trade']=='zero'), 'lz', inplace=True)
     df['position'].mask((df['trade'].shift(1)=='buy') & (df['trade']=='buy'), 'll', inplace=True)
+    
+    df['position_chart'] = 0
+    df['position_chart'].mask(df['trade']=='buy', 1, inplace=True)
     return df['position']
 
 
-def trade(df, cost=.001):
+def evaluate(df, cost=.001):
     df['signal_price'] = np.nan
     df['signal_price'].mask(df['position']=='zl', df.iloc[:,0], inplace=True)
     df['signal_price'].mask(df['position']=='lz', df.iloc[:,0], inplace=True)
@@ -64,12 +67,13 @@ def trade(df, cost=.001):
 
 
 def get_sharpe_ratio(df, rf_rate):
-    rf_rate = rf_rate / 365 + 1
-    sharpe_ratio = (df['daily_rtn']-rf_rate).mean() / (df['daily_rtn']-rf_rate).std()
+    rf_rate_daily = rf_rate / 365 + 1
+    df['sharpe_raw'] = df['daily_rtn'] - rf_rate_daily
+    sharpe_ratio = (df['acc_rtn'][-1]-1-rf_rate) / ( df['sharpe_raw'].std() * np.sqrt(252) )
     return round(sharpe_ratio, 4)
 
 
-def evaluate(df, rf_rate, cost):
+def performance(df, rf_rate, cost):
     rst = {}
     rst['no_trades'] = (df['position']=='lz').sum()
     rst['no_win'] = (df['rtn']>1).sum()
@@ -92,7 +96,7 @@ def evaluate(df, rf_rate, cost):
     print('Number of win: {}'.format(rst['no_win']))
     print('Hit ratio: {:.2%}'.format(rst['hit_ratio']))
     print('Investment period: {:.2f}yrs'.format(rst['period']/365))
-    print('Sharpe ratio: {:.2%}'.format(rst['sharpe_ratio']))
+    print('Sharpe ratio: {:.2f}'.format(rst['sharpe_ratio']))
     print('MDD: {:.2%}'.format(rst['mdd']-1))
     print('Benchmark MDD: {:.2%}'.format(rst['bm_mdd']-1))
     return rst

@@ -29,18 +29,19 @@ def str_to_list(s):
     return cds
 
 
-def draw_chart(df, left, right=None, log=False):
-    left = str_to_list(left)
+def draw_chart(df, left=None, right=None, log=False):
     fig, ax1 = plt.subplots()
     x = df.index
-    i = 1
-    for c in left:
-        ax1.plot(x, df[c], label=c, color='C'+str(i), alpha=1)
-        i += 1
-    if log:
-        ax1.set_yscale('log')
-        ax1.yaxis.set_major_formatter(ScalarFormatter())
-        ax1.yaxis.set_minor_formatter(ScalarFormatter())
+    if left is not None:
+        left = str_to_list(left)
+        i = 1
+        for c in left:
+            ax1.plot(x, df[c], label=c, color='C'+str(i), alpha=1)
+            i += 1
+        if log:
+            ax1.set_yscale('log')
+            ax1.yaxis.set_major_formatter(ScalarFormatter())
+            ax1.yaxis.set_minor_formatter(ScalarFormatter())
     # secondary y
     if right is not None:
         right = str_to_list(right)
@@ -55,4 +56,4 @@ def draw_chart(df, left, right=None, log=False):
             ax2.set_yscale('log')
             ax2.yaxis.set_major_formatter(ScalarFormatter())
             ax2.yaxis.set_minor_formatter(ScalarFormatter())
-    ax1.legend(loc=0)
+    ax1.legend(loc=2)

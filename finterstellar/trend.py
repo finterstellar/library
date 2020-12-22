@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def rsi(df, w=5):
+def rsi(df, w=20):
     df.fillna(method='ffill', inplace=True)  # 들어온 데이터의 구멍을 메꿔준다
     if len(df) > w+1:
         df['diff'] = df.iloc[:,0].diff()   # 일별 가격차이 계산
@@ -16,7 +16,7 @@ def rsi(df, w=5):
         return None
 
 
-def wrsi(price_df, w=5):
+def wrsi(price_df, w=20):
     df.fillna(method='ffill', inplace=True)  # 들어온 데이터의 구멍을 메꿔준다
     if len(df) > w+1:
         df['diff'] = df.iloc[:,0].diff()   # 일별 가격차이 계산
