@@ -60,6 +60,7 @@ def evaluate(df, cost=.001):
     df['daily_rtn'].mask(df['position'] == 'lz', (df['signal_price']*(1-cost)) / df['signal_price'].shift(1), inplace=True)
     df['daily_rtn'].fillna(1, inplace=True)
     df['acc_rtn'] = df['daily_rtn'].cumprod()
+    df['acc_rtn_dp'] = ((df['acc_rtn']-1)*100).round(2)
     df['mdd'] = (df['acc_rtn'] / df['acc_rtn'].cummax()).round(4)
     df['bm_mdd'] = (df.iloc[:, 0] / df.iloc[:, 0].cummax()).round(4)
     df.drop(columns='signal_price', inplace=True)
@@ -73,20 +74,19 @@ def get_sharpe_ratio(df, rf_rate):
     return round(sharpe_ratio, 4)
 
 
-def performance(df, rf_rate, cost):
+def performance(df, rf_rate=.01):
     rst = {}
     rst['no_trades'] = (df['position']=='lz').sum()
     rst['no_win'] = (df['rtn']>1).sum()
     rst['acc_rtn'] = df['acc_rtn'][-1].round(4)
     rst['hit_ratio'] = round((df['rtn']>1).sum() / rst['no_trades'], 4)
-    rst['avg_rtn'] = round(df[df['rtn']>1]['rtn'].mean(), 4)
+    rst['avg_rtn'] = round(df[df['rtn']!=1]['rtn'].mean(), 4)
     rst['period'] = get_period(df)
     rst['annual_rtn'] = annualize(rst['acc_rtn'], rst['period'])
     rst['bm_rtn'] = round(df.iloc[-1,0]/df.iloc[0,0], 4)
     rst['sharpe_ratio'] = get_sharpe_ratio(df, rf_rate)
     rst['mdd'] = df['mdd'].min()
     rst['bm_mdd'] = df['bm_mdd'].min()
-    rst['transaction_cost'] = cost
 
     print('Accumulated return: {:.2%}'.format(rst['acc_rtn'] - 1))
     print('Annualized return : {:.2%}'.format(rst['annual_rtn'] - 1))
